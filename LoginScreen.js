@@ -23,6 +23,7 @@ const LoginScreen = ({ navigation }) => {
   const [loggedInUser, setLoggedInUser] = useState(null);
   const [otherUsers, setOtherUsers] = useState([]);
   const [profileImage, setProfileImage] = useState(null);
+  const [passwordVisible, setPasswordVisible] = useState(false);
 
   const pickImage = async () => {
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -68,11 +69,9 @@ const LoginScreen = ({ navigation }) => {
       );
 
       if (user) {
-        setLoggedInUser(user);
+        // navigate into the Main tab navigator and pass the currentUser
         setForm({ email: "", password: "" });
-        setProfileImage(user.profileUri || null);
-        loadOtherUsers(user.id);
-        Alert.alert("Success", `Welcome back, ${user.name}!`);
+        navigation.reset({ index: 0, routes: [{ name: "Main", params: { currentUser: user } }] });
       } else {
         Alert.alert("Error", "Invalid email or password.");
       }
@@ -110,10 +109,11 @@ const LoginScreen = ({ navigation }) => {
   );
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "#001F54" }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
       <KeyboardAvoidingView
         style={{ flex: 1, padding: 20 }}
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        behavior={"height"}
+        keyboardVerticalOffset={0}
       >
         {!loggedInUser ? (
           // LOGIN SCREEN
@@ -123,20 +123,25 @@ const LoginScreen = ({ navigation }) => {
             <TextInput
               style={styles.input}
               placeholder="Email"
-              placeholderTextColor="#9bb0d3"
+              placeholderTextColor="#9ca3af"
               autoCapitalize="none"
               keyboardType="email-address"
               value={form.email}
               onChangeText={(text) => setForm({ ...form, email: text })}
             />
-            <TextInput
-              style={styles.input}
-              placeholder="Password"
-              placeholderTextColor="#9bb0d3"
-              secureTextEntry
-              value={form.password}
-              onChangeText={(text) => setForm({ ...form, password: text })}
-            />
+            <View style={styles.inputRow}>
+              <TextInput
+                style={[styles.input, { paddingRight: 44 }]}
+                placeholder="Password"
+                placeholderTextColor="#9ca3af"
+                secureTextEntry={!passwordVisible}
+                value={form.password}
+                onChangeText={(text) => setForm({ ...form, password: text })}
+              />
+              <TouchableOpacity style={styles.eyeButton} onPress={() => setPasswordVisible((v) => !v)}>
+                <Ionicons name={passwordVisible ? 'eye-off' : 'eye'} size={20} color="#6b7280" />
+              </TouchableOpacity>
+            </View>
 
             <TouchableOpacity style={styles.button} onPress={handleLogin}>
               <Text style={styles.buttonText}>Login</Text>
@@ -154,7 +159,7 @@ const LoginScreen = ({ navigation }) => {
                 {profileImage ? (
                   <Image source={{ uri: profileImage }} style={styles.profileImage} />
                 ) : (
-                  <Ionicons name="person-circle-outline" size={100} color="#7fb3ff" />
+                  <Ionicons name="person-circle-outline" size={100} color="#111" />
                 )}
               </TouchableOpacity>
 
@@ -189,93 +194,121 @@ const LoginScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   loginContainer: { flex: 1, justifyContent: "center" },
   title: {
-    fontSize: 28,
-    fontWeight: "bold",
-    marginBottom: 20,
+    fontSize: 32,
+    fontWeight: "800",
+    marginBottom: 24,
     textAlign: "center",
-    color: "white",
+    color: "#111",
   },
   input: {
     borderWidth: 1,
-    borderColor: "#4a5d9a",
-    backgroundColor: "#0a1a3c",
-    color: "white",
-    borderRadius: 8,
-    padding: 12,
-    marginBottom: 15,
+    borderColor: "#d0d0d0",
+    backgroundColor: "#f9f9f9",
+    color: "#111",
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    marginBottom: 16,
+    fontSize: 15,
   },
   button: {
-    backgroundColor: "#004aad",
-    padding: 14,
-    borderRadius: 10,
-    marginTop: 10,
+    backgroundColor: "#0084ff",
+    paddingVertical: 14,
+    borderRadius: 12,
+    marginTop: 12,
+    elevation: 3,
+    shadowColor: "#0084ff",
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
   },
   buttonText: {
-    color: "white",
-    fontWeight: "bold",
+    color: "#fff",
+    fontWeight: "800",
     textAlign: "center",
     fontSize: 16,
   },
   link: {
-    color: "#7fb3ff",
+    color: "#0084ff",
     textAlign: "center",
-    marginTop: 12,
-    fontSize: 16,
+    marginTop: 16,
+    fontSize: 15,
+    fontWeight: "600",
   },
   subtitle: {
     fontSize: 18,
-    fontWeight: "600",
-    color: "#d2e4ff",
+    fontWeight: "700",
+    color: "#111",
     textAlign: "center",
-    marginBottom: 10,
+    marginBottom: 16,
   },
   profileSection: {
     alignItems: "center",
-    marginBottom: 20,
-    marginTop: 10,
+    marginBottom: 24,
+    marginTop: 16,
+    paddingBottom: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: "#e5e7eb",
   },
   profileImage: {
-    width: 110,
-    height: 110,
-    borderRadius: 55,
-    borderWidth: 2,
-    borderColor: "#7fb3ff",
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    borderWidth: 3,
+    borderColor: "#0084ff",
+    backgroundColor: "#e5e7eb",
   },
   userNameBig: {
-    fontSize: 22,
-    fontWeight: "700",
-    marginTop: 10,
-    color: "white",
+    fontSize: 24,
+    fontWeight: "800",
+    marginTop: 12,
+    color: "#111",
   },
   changePhotoText: {
-    fontSize: 12,
-    color: "#9bb0d3",
-    marginTop: 5,
+    fontSize: 13,
+    color: "#6b7280",
+    marginTop: 8,
+    fontStyle: "italic",
   },
   userRow: {
-    padding: 12,
-    backgroundColor: "#0a1a3c",
-    borderRadius: 8,
+    padding: 14,
+    backgroundColor: "#fff",
+    borderWidth: 1,
+    borderColor: "#e5e7eb",
+    borderRadius: 12,
     marginBottom: 10,
+    elevation: 1,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.06,
+    shadowRadius: 2,
   },
+  inputRow: { position: 'relative', justifyContent: 'center' },
+  eyeButton: { position: 'absolute', right: 14, top: 12, height: 36, width: 36, justifyContent: 'center', alignItems: 'center' },
   userName: {
     fontSize: 16,
-    fontWeight: "600",
-    color: "white",
+    fontWeight: "700",
+    color: "#111",
   },
   userEmail: {
     fontSize: 14,
-    color: "#9bb0d3",
+    color: "#6b7280",
+    marginTop: 4,
   },
   logoutBtn: {
-    backgroundColor: "#c62828",
-    padding: 12,
-    borderRadius: 10,
-    marginVertical: 10,
+    backgroundColor: "#ef4444",
+    paddingVertical: 13,
+    borderRadius: 12,
+    marginVertical: 12,
+    elevation: 2,
+    shadowColor: "#ef4444",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3,
   },
   logoutText: {
     color: "white",
-    fontWeight: "bold",
+    fontWeight: "800",
     textAlign: "center",
     fontSize: 16,
   },

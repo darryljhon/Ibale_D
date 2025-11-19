@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { View, Text, Image, TouchableOpacity, StyleSheet, Alert } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import { useSQLiteContext } from "expo-sqlite";
+import { useFocusEffect } from "@react-navigation/native";
 
 const ProfileScreen = ({ route, navigation }) => {
   const db = useSQLiteContext();
@@ -15,24 +16,62 @@ const ProfileScreen = ({ route, navigation }) => {
     if (fresh) setUser(fresh);
   };
 
-  const pickImage = async () => {
+  // Reload when screen comes into focus so changes propagate from other screens
+  useFocusEffect(
+    useCallback(() => {
+      reload();
+    }, [currentUser?.id])
+  );
+
+  const pickImageFromLibrary = async () => {
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!permission.granted) {
       Alert.alert("Permission required", "Please allow access to your gallery.");
-      return;
+      return null;
     }
-    const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ImagePicker.MediaType.Images, allowsEditing: true, aspect: [1, 1], quality: 0.8 });
-    if (!result.canceled) {
-      const uri = result.assets[0].uri;
-      try {
-        setUser((prev) => ({ ...(prev || {}), profileUri: uri }));
-        const targetId = user?.id || currentUser?.id;
-        if (targetId) {
-          await db.runAsync("UPDATE auth_users SET profileUri = ? WHERE id = ?", [uri, targetId]);
+    const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ImagePicker.MediaTypeOptions.Images, allowsEditing: true, aspect: [1, 1], quality: 0.8 });
+    if (result.canceled) return null;
+    return result.assets[0].uri;
+  };
+
+  const takePhoto = async () => {
+    const permission = await ImagePicker.requestCameraPermissionsAsync();
+    if (!permission.granted) {
+      Alert.alert("Permission required", "Please allow access to your camera.");
+      return null;
+    }
+    const result = await ImagePicker.launchCameraAsync({ allowsEditing: true, aspect: [1, 1], quality: 0.8 });
+    if (result.canceled) return null;
+    return result.assets[0].uri;
+  };
+
+  const pickImage = async () => {
+    Alert.alert("Change Photo", "Choose a source", [
+      { text: "Take Photo", onPress: async () => {
+          const uri = await takePhoto();
+          if (uri) await saveProfileUri(uri);
         }
-      } catch (e) {
-        Alert.alert("Error", "Failed to update profile picture");
+      },
+      { text: "Choose from Library", onPress: async () => {
+          const uri = await pickImageFromLibrary();
+          if (uri) await saveProfileUri(uri);
+        }
+      },
+      { text: "Cancel", style: "cancel" },
+    ]);
+  };
+
+  const saveProfileUri = async (uri) => {
+    try {
+      setUser((prev) => ({ ...(prev || {}), profileUri: uri }));
+      const targetId = user?.id || currentUser?.id;
+      if (targetId) {
+        await db.runAsync("UPDATE auth_users SET profileUri = ? WHERE id = ?", [uri, targetId]);
       }
+      Alert.alert("Updated", "Profile picture updated successfully!");
+    } catch (e) {
+      console.error(e);
+      Alert.alert("Error", "Failed to update profile picture");
     }
   };
 
@@ -70,21 +109,21 @@ const ProfileScreen = ({ route, navigation }) => {
 };
 
 const styles = StyleSheet.create({
-  title: { fontSize: 28, fontWeight: "bold", marginBottom: 16, textAlign: "center", color: "#111", fontFamily: "Comic Sans MS" },
-  container: { alignItems: "center", paddingTop: 24 },
-  avatar: { width: 110, height: 110, borderRadius: 55, backgroundColor: "#e5e7eb" },
+  title: { fontSize: 28, fontWeight: "800", marginBottom: 20, textAlign: "center", color: "#111" },
+  container: { alignItems: "center", paddingTop: 16, paddingHorizontal: 16, flex: 1, backgroundColor: "#f5f5f5" },
+  avatar: { width: 130, height: 130, borderRadius: 65, backgroundColor: "#e5e7eb", borderWidth: 4, borderColor: "#0084ff" },
   placeholder: { justifyContent: "center", alignItems: "center" },
-  name: { fontSize: 22, fontWeight: "700", marginTop: 12, color: "#111", fontFamily: "Comic Sans MS" },
-  email: { fontSize: 14, color: "#374151", marginTop: 4, fontFamily: "Comic Sans MS" },
-  bio: { fontSize: 14, color: "#374151", marginTop: 8, textAlign: "center", paddingHorizontal: 24, fontFamily: "Comic Sans MS" },
-  addr: { fontSize: 13, color: "#374151", marginTop: 4, fontFamily: "Comic Sans MS" },
-  actions: { marginTop: 16, width: "90%" },
-  primaryBtn: { backgroundColor: "#111827", padding: 12, borderRadius: 10 },
-  primaryText: { color: "#fff", textAlign: "center", fontWeight: "bold", fontFamily: "Comic Sans MS" },
-  secondaryBtn: { marginTop: 10, borderWidth: 1, borderColor: "#222", padding: 12, borderRadius: 10 },
-  secondaryText: { color: "#111111ff", textAlign: "center", fontWeight: "600", fontFamily: "Comic Sans MS" },
-  logoutBtn: { marginTop: 10, backgroundColor: "#b91c1c", padding: 12, borderRadius: 10 },
-  logoutText: { color: "#fff", textAlign: "center", fontWeight: "bold", fontFamily: "Comic Sans MS" },
+  name: { fontSize: 26, fontWeight: "800", marginTop: 16, color: "#111" },
+  email: { fontSize: 15, color: "#6b7280", marginTop: 6 },
+  bio: { fontSize: 15, color: "#374151", marginTop: 12, textAlign: "center", paddingHorizontal: 16, fontStyle: "italic" },
+  addr: { fontSize: 14, color: "#6b7280", marginTop: 6 },
+  actions: { marginTop: 28, width: "100%" },
+  primaryBtn: { backgroundColor: "#0084ff", paddingVertical: 13, borderRadius: 12, elevation: 2, shadowColor: "#0084ff", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.25, shadowRadius: 3 },
+  primaryText: { color: "#fff", textAlign: "center", fontWeight: "800", fontSize: 16 },
+  secondaryBtn: { marginTop: 12, borderWidth: 2, borderColor: "#0084ff", paddingVertical: 12, borderRadius: 12, backgroundColor: "#fff" },
+  secondaryText: { color: "#0084ff", textAlign: "center", fontWeight: "700", fontSize: 16 },
+  logoutBtn: { marginTop: 12, backgroundColor: "#ef4444", paddingVertical: 13, borderRadius: 12, elevation: 2, shadowColor: "#ef4444", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.25, shadowRadius: 3 },
+  logoutText: { color: "#fff", textAlign: "center", fontWeight: "800", fontSize: 16 },
 });
 
 export default ProfileScreen;

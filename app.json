@@ -1,14 +1,14 @@
 {
   "expo": {
-    "name": "Maria LesLie Janna",
-    "slug": "maria-leslie-janna",
+    "name": "Ibale_D",
+    "slug": "ibale-d",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/Leslie.png",
+    "icon": "./assets/dar.jpg",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/Leslie.png",
+      "image": "./assets/dar.jpg",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
@@ -17,21 +17,22 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/Leslie.png",
+        "foregroundImage": "./assets/dar.jpg",
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.jannaaim.marialesliejanna"
+      "softwareKeyboardLayoutMode": "resize",
+      "package": "com.ibale.d"
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/dar.jpg"
     },
     "plugins": [
       "expo-sqlite"
     ],
     "extra": {
       "eas": {
-        "projectId": "2568848f-3dae-4834-931d-e95453e2f7e1"
+        "projectId": ""
       }
     }
   }

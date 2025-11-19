@@ -12,6 +12,7 @@ import {
   StatusBar,
   Keyboard,
   Image,
+  Animated,
 } from "react-native";
 import { useSQLiteContext } from "expo-sqlite";
 
@@ -25,6 +26,23 @@ const MessengerScreen = ({ route, navigation }) => {
   const [keyboardHeight, setKeyboardHeight] = useState(0);
   const [currentUserPic, setCurrentUserPic] = useState(null);
   const [chatWithUserPic, setChatWithUserPic] = useState(null);
+
+  // Helper to convert chronological messages into a flat list with date separators
+  const groupedMessages = (msgs) => {
+    if (!msgs || msgs.length === 0) return [];
+    const out = [];
+    let lastDate = null;
+    msgs.forEach((m) => {
+      const d = new Date(m.created_at || Date.now());
+      const label = d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: d.getFullYear() === new Date().getFullYear() ? undefined : 'numeric' });
+      if (label !== lastDate) {
+        out.push({ type: 'date', label });
+        lastDate = label;
+      }
+      out.push({ ...m, type: 'message' });
+    });
+    return out;
+  };
 
   // Fetch user profile pictures
   const loadUserPics = async () => {
@@ -71,10 +89,12 @@ const MessengerScreen = ({ route, navigation }) => {
          ORDER BY created_at ASC`,
         [currentUser.name, chatWithUser.name, chatWithUser.name, currentUser.name]
       );
+      // keep chronological order (oldest first) so we can insert date separators
       setMessages(results);
+      // scroll to bottom after a small delay so layout is ready
       setTimeout(() => {
-        flatListRef.current?.scrollToEnd({ animated: true });
-      }, 100);
+        try { flatListRef.current?.scrollToEnd({ animated: true }); } catch (e) {}
+      }, 120);
     } catch (error) {
       console.error("Load Messages Error:", error);
     }
@@ -89,7 +109,9 @@ const MessengerScreen = ({ route, navigation }) => {
         [currentUser.name, chatWithUser.name, newMessage.trim()]
       );
       setNewMessage("");
-      loadMessages();
+      // reload and scroll to newest
+      await loadMessages();
+      setTimeout(() => { try { flatListRef.current?.scrollToOffset({ offset: 0, animated: true }); } catch (e) {} }, 120);
     } catch (error) {
       console.error("Send Message Error:", error);
     }
@@ -101,9 +123,11 @@ const MessengerScreen = ({ route, navigation }) => {
       loadUserPics();
     });
 
-    const showSub = Keyboard.addListener("keyboardDidShow", (e) =>
-      setKeyboardHeight(e.endCoordinates.height)
-    );
+    const showSub = Keyboard.addListener("keyboardDidShow", (e) => {
+      setKeyboardHeight(e.endCoordinates.height);
+      // when keyboard opens, scroll to bottom to reveal latest messages
+      setTimeout(() => { try { flatListRef.current?.scrollToEnd({ animated: true }); } catch (e) {} }, 50);
+    });
     const hideSub = Keyboard.addListener("keyboardDidHide", () => setKeyboardHeight(0));
 
     return () => {
@@ -113,8 +137,18 @@ const MessengerScreen = ({ route, navigation }) => {
   }, []);
 
   const renderItem = ({ item }) => {
+    // separator items (inserted by grouping) have a special type
+    if (item.type === "date") {
+      return (
+        <View style={styles.dateSeparator}>
+          <Text style={styles.dateText}>{item.label}</Text>
+        </View>
+      );
+    }
+
     const isMe = item.sender === currentUser.name;
     const profilePic = isMe ? currentUserPic : chatWithUserPic;
+    const time = item.created_at ? new Date(item.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
 
     return (
       <View style={[styles.messageRow, isMe ? styles.rowRight : styles.rowLeft]}>
@@ -124,8 +158,11 @@ const MessengerScreen = ({ route, navigation }) => {
             style={styles.chatHeadImage}
           />
         )}
-        <View style={[styles.messageBubble, isMe ? styles.myMessage : styles.otherMessage]}>
-          <Text style={isMe ? styles.myMessageText : styles.otherMessageText}>{item.message}</Text>
+        <View style={[styles.messageBubbleContainer, isMe ? styles.myBubbleContainer : styles.otherBubbleContainer]}>
+          <View style={[styles.messageBubble, isMe ? styles.myMessage : styles.otherMessage]}>
+            <Text style={isMe ? styles.myMessageText : styles.otherMessageText}>{item.message}</Text>
+          </View>
+          {time && <Text style={[styles.timeText, isMe ? styles.myTimeText : styles.otherTimeText]}>{time}</Text>}
         </View>
         {isMe && (
           <Image
@@ -139,38 +176,45 @@ const MessengerScreen = ({ route, navigation }) => {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="light-content" backgroundColor="#0084ff" />
+      <StatusBar barStyle="dark-content" backgroundColor="#fff" />
 
       <KeyboardAvoidingView
         style={{ flex: 1 }}
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
-        keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
+        behavior={"height"}
+        keyboardVerticalOffset={0}
       >
         {/* Header */}
-        <View style={styles.header}>
+        <View style={[styles.header, { backgroundColor: '#fff' }] }>
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-            <Text style={styles.backText}>◀ Back</Text>
+            <Text style={[styles.backText, { color: '#111' }]}>◀</Text>
           </TouchableOpacity>
-          <Text style={styles.headerName}>{chatWithUser.name}</Text>
-          <View style={{ width: 60 }} />
+          <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1, paddingLeft: 8 }}>
+            <Image source={chatWithUserPic ? { uri: chatWithUserPic } : require("./assets/default.png")} style={styles.headerAvatar} />
+            <View style={{ marginLeft: 8 }}>
+              <Text style={[styles.headerName, { color: '#111', fontSize: 16 }]}>{chatWithUser.name}</Text>
+              <Text style={{ color: '#6b7280', fontSize: 12 }}>{chatWithUser.email || 'Online'}</Text>
+            </View>
+          </View>
+          <View style={{ width: 10 }} />
         </View>
 
         {/* Messages */}
         <FlatList
           ref={flatListRef}
-          data={messages}
-          keyExtractor={(item) => item.id.toString()}
+          data={groupedMessages(messages)}
+          keyExtractor={(item, index) => item.type === 'date' ? `date-${item.label}-${index}` : item.id?.toString() || index.toString()}
           renderItem={renderItem}
-          contentContainerStyle={{ paddingVertical: 10 }}
+          contentContainerStyle={{ paddingVertical: 12, paddingHorizontal: 8 }}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         />
 
         {/* Input */}
-        <View style={[styles.inputRow, { marginBottom: keyboardHeight }]}>
+        <Animated.View style={[styles.inputRow, { marginBottom: Math.max(0, keyboardHeight - 250) }] }>
           <TextInput
             style={styles.input}
             placeholder="Type a message..."
+            placeholderTextColor="#9ca3af"
             value={newMessage}
             onChangeText={setNewMessage}
             multiline
@@ -178,60 +222,155 @@ const MessengerScreen = ({ route, navigation }) => {
           <TouchableOpacity style={styles.sendButton} onPress={sendMessage}>
             <Text style={{ color: "#fff", fontWeight: "bold" }}>Send</Text>
           </TouchableOpacity>
-        </View>
+        </Animated.View>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: "#e5e5e5" },
+  safeArea: { flex: 1, backgroundColor: "#f5f5f5" },
   header: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#0084ff",
+    backgroundColor: "#fff",
     paddingHorizontal: 12,
-    paddingVertical: 10,
+    paddingVertical: 12,
     justifyContent: "space-between",
+    borderBottomWidth: 1,
+    borderBottomColor: "#e0e0e0",
+    elevation: 2,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
   },
-  backButton: { padding: 4 },
-  backText: { color: "#fff", fontSize: 16, fontWeight: "bold" },
-  headerName: { color: "#fff", fontSize: 18, fontWeight: "bold", textAlign: "center", flex: 1 },
+  backButton: { padding: 8, marginRight: 4 },
+  backText: { color: "#0084ff", fontSize: 18, fontWeight: "bold" },
+  headerName: { color: "#111", fontSize: 16, fontWeight: "700", textAlign: "center", flex: 1 },
   container: { flex: 1 },
-  messageRow: { flexDirection: "row", alignItems: "flex-end", marginVertical: 6, paddingHorizontal: 10 },
+  messageRow: { 
+    flexDirection: "row", 
+    alignItems: "flex-end", 
+    marginVertical: 8, 
+    paddingHorizontal: 12,
+    minHeight: 50,
+  },
   rowLeft: { justifyContent: "flex-start" },
   rowRight: { justifyContent: "flex-end" },
-  chatHeadImage: { width: 36, height: 36, borderRadius: 18, marginHorizontal: 4 },
-  messageBubble: { padding: 10, borderRadius: 18, maxWidth: "70%" },
-  myMessage: { backgroundColor: "#0084ff", marginLeft: 6 },
-  otherMessage: { backgroundColor: "#f0f0f0", marginRight: 6 },
-  myMessageText: { color: "#fff", fontSize: 16 },
-  otherMessageText: { color: "#000", fontSize: 16 },
+  chatHeadImage: { width: 40, height: 40, borderRadius: 20, marginHorizontal: 6, backgroundColor: "#e0e0e0" },
+  headerAvatar: { width: 44, height: 44, borderRadius: 22, backgroundColor: "#e0e0e0" },
+  messageBubbleContainer: { 
+    maxWidth: "72%", 
+    justifyContent: "flex-end",
+    minHeight: 44,
+  },
+  myBubbleContainer: {
+    alignItems: "flex-end",
+    marginLeft: 8,
+  },
+  otherBubbleContainer: {
+    alignItems: "flex-start",
+    marginRight: 8,
+  },
+  messageBubble: { 
+    paddingHorizontal: 14, 
+    paddingVertical: 10, 
+    borderRadius: 18,
+    justifyContent: "center",
+    minHeight: 40,
+    elevation: 1,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.08,
+    shadowRadius: 2,
+  },
+  myMessage: { 
+    backgroundColor: "#0084ff",
+    borderBottomRightRadius: 4,
+  },
+  otherMessage: { 
+    backgroundColor: "#e8e8e8",
+    borderBottomLeftRadius: 4,
+  },
+  myMessageText: { color: "#fff", fontSize: 15, lineHeight: 20 },
+  otherMessageText: { color: "#000", fontSize: 15, lineHeight: 20 },
   inputRow: {
     flexDirection: "row",
     alignItems: "center",
-    padding: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 10,
     borderTopWidth: 1,
-    borderTopColor: "#ccc",
+    borderTopColor: "#e0e0e0",
     backgroundColor: "#fff",
+    minHeight: 56,
+    elevation: 4,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
   },
   input: {
     flex: 1,
     borderWidth: 1,
-    borderColor: "#ddd",
-    borderRadius: 25,
-    paddingHorizontal: 15,
-    paddingVertical: 6,
+    borderColor: "#d0d0d0",
+    borderRadius: 24,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
     marginRight: 8,
-    backgroundColor: "#f9f9f9",
-    maxHeight: 100,
+    backgroundColor: "#f5f5f5",
+    maxHeight: 120,
+    fontSize: 15,
+    minHeight: 40,
   },
   sendButton: {
     backgroundColor: "#0084ff",
-    borderRadius: 25,
-    padding: 10,
+    borderRadius: 24,
+    paddingHorizontal: 20,
+    paddingVertical: 10,
     justifyContent: "center",
     alignItems: "center",
+    minHeight: 40,
+    minWidth: 50,
+    elevation: 2,
+    shadowColor: "#0084ff",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 3,
+  },
+  timeText: { 
+    fontSize: 12, 
+    color: '#9e9e9e', 
+    marginTop: 4,
+    fontWeight: '500',
+  },
+  myTimeText: {
+    textAlign: 'right',
+    marginRight: 2,
+  },
+  otherTimeText: {
+    textAlign: 'left',
+    marginLeft: 2,
+  },
+  dateSeparator: { 
+    alignItems: 'center', 
+    marginVertical: 14,
+    minHeight: 32,
+    justifyContent: 'center',
+  },
+  dateText: { 
+    backgroundColor: '#e8e8e8', 
+    paddingHorizontal: 16, 
+    paddingVertical: 6, 
+    borderRadius: 16, 
+    color: '#616161', 
+    fontSize: 13,
+    fontWeight: '500',
+    elevation: 1,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.08,
+    shadowRadius: 1,
   },
 });
 

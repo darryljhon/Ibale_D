@@ -10,6 +10,9 @@ import LoginScreen from "./LoginScreen";
 import UserListScreen from "./UserListScreen";
 import MessengerScreen from "./MessengerScreen";
 import CommentScreen from "./CommentScreen";
+import MainTabs from "./MainTabs";
+import AboutScreen from "./AboutScreen";
+import EditProfileScreen from "./EditProfileScreen";
 
 const Stack = createStackNavigator();
 
@@ -62,8 +65,8 @@ export default function App() {
         <Stack.Navigator
           initialRouteName="Register"
           screenOptions={{
-            headerStyle: { backgroundColor: "#0084ff" },
-            headerTintColor: "#fff",
+            headerStyle: { backgroundColor: "#fff" },
+            headerTintColor: "#111",
             headerTitleStyle: { fontWeight: "bold" },
           }}
         >
@@ -81,6 +84,21 @@ export default function App() {
             name="Users"
             component={UserListScreen}
             options={{ title: "User List" }}
+          />
+          <Stack.Screen
+            name="Main"
+            component={MainTabs}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="EditProfile"
+            component={EditProfileScreen}
+            options={{ title: "Edit Profile" }}
+          />
+          <Stack.Screen
+            name="About"
+            component={AboutScreen}
+            options={{ title: "About" }}
           />
           <Stack.Screen
             name="Messenger"

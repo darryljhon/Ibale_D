@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, Image, KeyboardAvoidingView, Platform } from "react-native";
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, Image, KeyboardAvoidingView, Platform, ScrollView } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import { useSQLiteContext } from "expo-sqlite";
 
@@ -44,11 +44,11 @@ const EditProfileScreen = ({ route, navigation }) => {
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
       <KeyboardAvoidingView
-        style={{ flex: 1 }}
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
-      >
-      <View style={styles.container}>
+          style={{ flex: 1 }}
+          behavior={"height"}
+          keyboardVerticalOffset={0}
+        >
+      <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
         <TouchableOpacity onPress={pickImage}>
           {form.profileUri ? (
             <Image source={{ uri: form.profileUri }} style={styles.avatar} />
@@ -61,20 +61,20 @@ const EditProfileScreen = ({ route, navigation }) => {
         <TextInput style={[styles.input, styles.multiline]} placeholder="Short Bio" multiline value={form.bio} onChangeText={(t) => setForm({ ...form, bio: t })} />
         <TextInput style={styles.input} placeholder="Address (optional)" value={form.address} onChangeText={(t) => setForm({ ...form, address: t })} />
         <TouchableOpacity style={styles.saveBtn} onPress={save}><Text style={styles.saveText}>Save</Text></TouchableOpacity>
-      </View>
+      </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { padding: 16 },
-  avatar: { width: 110, height: 110, borderRadius: 55, backgroundColor: "#e5e7eb", alignSelf: "center", marginBottom: 16 },
+  container: { padding: 16, flexGrow: 1, justifyContent: 'center', backgroundColor: "#f5f5f5" },
+  avatar: { width: 130, height: 130, borderRadius: 65, backgroundColor: "#e5e7eb", alignSelf: "center", marginBottom: 24, borderWidth: 4, borderColor: "#0084ff" },
   placeholder: { justifyContent: "center", alignItems: "center" },
-  input: { borderWidth: 1, borderColor: "#e5e7eb", borderRadius: 8, padding: 12, marginBottom: 12, backgroundColor: "#fff", color: "#111", fontFamily: "Comic Sans MS" },
-  multiline: { minHeight: 80, textAlignVertical: "top" },
-  saveBtn: { backgroundColor: "#111827", padding: 12, borderRadius: 10 },
-  saveText: { color: "#fff", textAlign: "center", fontWeight: "bold", fontFamily: "Comic Sans MS" },
+  input: { borderWidth: 1, borderColor: "#d0d0d0", borderRadius: 12, paddingHorizontal: 16, paddingVertical: 12, marginBottom: 16, backgroundColor: "#fff", color: "#111", fontSize: 15 },
+  multiline: { minHeight: 100, textAlignVertical: "top" },
+  saveBtn: { backgroundColor: "#0084ff", paddingVertical: 14, borderRadius: 12, marginTop: 8, elevation: 3, shadowColor: "#0084ff", shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.3, shadowRadius: 4 },
+  saveText: { color: "#fff", textAlign: "center", fontWeight: "800", fontSize: 16 },
 });
 
 export default EditProfileScreen;

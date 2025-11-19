@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useLayoutEffect } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { FlatList, Text, TouchableOpacity, View, StyleSheet, Image, TextInput } from "react-native";
+import { FlatList, Text, TouchableOpacity, View, StyleSheet, Image, TextInput, KeyboardAvoidingView } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useSQLiteContext } from "expo-sqlite";
 
@@ -18,7 +18,9 @@ const ChatSelectScreen = ({ route, navigation }) => {
         [currentUser?.id || -1]
       );
       setUsers(results);
-    } catch (e) {}
+    } catch (e) {
+      console.error(e);
+    }
   };
 
   useEffect(() => { loadUsers(); }, []);
@@ -44,50 +46,61 @@ const ChatSelectScreen = ({ route, navigation }) => {
   });
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
-      {showSearch && (
-        <View style={styles.searchBar}>
-          <Ionicons name="search-outline" size={18} color="#6b7280" style={{ marginRight: 8 }} />
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Search users"
-            value={query}
-            onChangeText={setQuery}
-          />
+    <SafeAreaView style={{ flex: 1, backgroundColor: "#f5f5f5" }}>
+      <KeyboardAvoidingView style={{ flex: 1 }} behavior={"height"} keyboardVerticalOffset={0}>
+        <View style={styles.headerTitleContainer}>
+          <Text style={styles.title}>Chats</Text>
+          <Text style={styles.subtitle}>{currentUser?.name ? `Signed in as ${currentUser.name}` : 'Select someone to message'}</Text>
         </View>
-      )}
-      <FlatList
-        data={filtered}
-        keyExtractor={(item) => item.id.toString()}
-        renderItem={({ item }) => (
-          <TouchableOpacity
-            style={styles.row}
-            onPress={() => navigation.navigate("Messenger", { currentUser, chatWithUser: item })}
-          >
-            <Image
-              source={item.profileUri ? { uri: item.profileUri } : require("./assets/icon.png")}
-              style={styles.userIcon}
+        {showSearch && (
+          <View style={styles.searchBar}>
+            <Ionicons name="search-outline" size={18} color="#6b7280" style={{ marginRight: 8 }} />
+            <TextInput
+              style={styles.searchInput}
+              placeholder="Search users"
+              placeholderTextColor="#9ca3af"
+              value={query}
+              onChangeText={setQuery}
             />
-            <View style={{ flex: 1 }}>
-              <Text style={styles.name}>{item.name}</Text>
-              <Text style={styles.email}>{item.email}</Text>
-            </View>
-          </TouchableOpacity>
+          </View>
         )}
-        contentContainerStyle={{ padding: 12 }}
-      />
+
+        <FlatList
+          data={filtered}
+          keyExtractor={(item) => item.id.toString()}
+          renderItem={({ item }) => (
+            <TouchableOpacity
+              style={styles.row}
+              onPress={() => navigation.navigate("Messenger", { currentUser, chatWithUser: item })}
+            >
+              <Image
+                source={item.profileUri ? { uri: item.profileUri } : require("./assets/icon.png")}
+                style={styles.userIcon}
+              />
+              <View style={{ flex: 1 }}>
+                <Text style={styles.name}>{item.name}</Text>
+                <Text style={styles.email}>{item.email}</Text>
+              </View>
+            </TouchableOpacity>
+          )}
+          contentContainerStyle={{ paddingVertical: 0, paddingHorizontal: 12 }}
+          keyboardShouldPersistTaps="handled"
+        />
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
-  title: { fontSize: 28, fontWeight: "bold", marginBottom: 16, textAlign: "center", color: "#111", fontFamily: "Comic Sans MS" },
-  searchBar: { flexDirection: "row", alignItems: "center", borderWidth: 1, borderColor: "#e5e7eb", borderRadius: 8, margin: 12, paddingHorizontal: 10, backgroundColor: "#fff" },
-  searchInput: { flex: 1, height: 40, color: "#111" },
-  row: { padding: 12, backgroundColor: "#fff", borderRadius: 8, borderWidth: 1, borderColor: "#e5e7eb", marginBottom: 10, flexDirection: "row", alignItems: "center" },
-  userIcon: { width: 36, height: 36, borderRadius: 18, marginRight: 10, backgroundColor: "#e5e7eb" },
-  name: { fontSize: 16, fontWeight: "600", color: "#111", fontFamily: "Comic Sans MS" },
-  email: { fontSize: 14, color: "#6b7280", fontFamily: "Comic Sans MS" },
+  title: { fontSize: 22, fontWeight: "800", marginBottom: 4, textAlign: "left", color: "#111" },
+  headerTitleContainer: { paddingHorizontal: 16, paddingVertical: 12, backgroundColor: "transparent" },
+  subtitle: { fontSize: 13, color: "#6b7280", marginBottom: 8 },
+  searchBar: { flexDirection: "row", alignItems: "center", borderWidth: 1, borderColor: "#d0d0d0", borderRadius: 12, marginHorizontal: 12, marginVertical: 8, paddingHorizontal: 12, backgroundColor: "#f9f9f9" },
+  searchInput: { flex: 1, height: 44, color: "#111", fontSize: 15 },
+  row: { paddingHorizontal: 16, paddingVertical: 13, backgroundColor: "#fff", borderRadius: 12, borderWidth: 1, borderColor: "#e5e7eb", marginBottom: 10, flexDirection: "row", alignItems: "center", elevation: 1, shadowColor: "#000", shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 2 },
+  userIcon: { width: 44, height: 44, borderRadius: 22, marginRight: 12, backgroundColor: "#e5e7eb", borderWidth: 2, borderColor: "#0084ff" },
+  name: { fontSize: 16, fontWeight: "700", color: "#111" },
+  email: { fontSize: 14, color: "#6b7280", marginTop: 2 },
 });
 
 export default ChatSelectScreen;
