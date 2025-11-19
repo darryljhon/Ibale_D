@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from "react";
+import { SafeAreaView } from "react-native-safe-area-context";
 import {
-  SafeAreaView,
   View,
   Text,
   TextInput,
@@ -57,7 +57,7 @@ const CommentScreen = ({ route }) => {
   }, []);
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: "#000" }}>
       <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -70,7 +70,7 @@ const CommentScreen = ({ route }) => {
           renderItem={({ item }) => (
             <View style={styles.comment}>
               <Text style={styles.user}>{item.user}:</Text>
-              <Text>{item.comment}</Text>
+              <Text style={styles.text}>{item.comment}</Text>
             </View>
           )}
           contentContainerStyle={{ padding: 10 }}
@@ -91,21 +91,16 @@ const CommentScreen = ({ route }) => {
 };
 
 const styles = StyleSheet.create({
-  comment: {
-    marginBottom: 8,
-    padding: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: "#ccc",
-    borderRadius: 6,
-  },
-  user: { fontWeight: "bold", marginBottom: 2 },
+  comment: { marginBottom: 8, padding: 8, borderBottomWidth: 1, borderBottomColor: "#222", borderRadius: 6 },
+  user: { fontWeight: "bold", marginBottom: 2, color: "#fff", fontFamily: "Comic Sans MS" },
+  text: { color: "#fff", fontFamily: "Comic Sans MS" },
   inputContainer: {
     flexDirection: "row",
     alignItems: "center",
     padding: 10,
     borderTopWidth: 1,
     borderTopColor: "#ccc",
-    backgroundColor: "#f9f9f9",
+    backgroundColor: "#000",
   },
   input: {
     flex: 1,
@@ -114,7 +109,9 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     padding: 10,
     marginRight: 10,
-    backgroundColor: "#fff",
+    backgroundColor: "#111",
+    color: "#fff",
+    fontFamily: "Comic Sans MS",
   },
 });
 

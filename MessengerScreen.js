@@ -1,11 +1,11 @@
 import React, { useEffect, useState, useRef } from "react";
+import { SafeAreaView } from "react-native-safe-area-context";
 import {
   View,
   Text,
   TextInput,
   FlatList,
   StyleSheet,
-  SafeAreaView,
   KeyboardAvoidingView,
   Platform,
   TouchableOpacity,
@@ -139,7 +139,7 @@ const MessengerScreen = ({ route, navigation }) => {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="light-content" backgroundColor="#0084ff" />
+      <StatusBar barStyle="light-content" backgroundColor="#000" />
 
       <KeyboardAvoidingView
         style={{ flex: 1 }}
@@ -148,11 +148,7 @@ const MessengerScreen = ({ route, navigation }) => {
       >
         {/* Header */}
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-            <Text style={styles.backText}>◀ Back</Text>
-          </TouchableOpacity>
           <Text style={styles.headerName}>{chatWithUser.name}</Text>
-          <View style={{ width: 60 }} />
         </View>
 
         {/* Messages */}
@@ -185,18 +181,9 @@ const MessengerScreen = ({ route, navigation }) => {
 };
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: "#e5e5e5" },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#0084ff",
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    justifyContent: "space-between",
-  },
-  backButton: { padding: 4 },
-  backText: { color: "#fff", fontSize: 16, fontWeight: "bold" },
-  headerName: { color: "#fff", fontSize: 18, fontWeight: "bold", textAlign: "center", flex: 1 },
+  safeArea: { flex: 1, backgroundColor: "#000" },
+  header: { flexDirection: "row", alignItems: "center", backgroundColor: "#000", paddingHorizontal: 12, paddingVertical: 10, justifyContent: "center" },
+  headerName: { color: "#fff", fontSize: 18, fontWeight: "bold" },
   container: { flex: 1 },
   messageRow: { flexDirection: "row", alignItems: "flex-end", marginVertical: 6, paddingHorizontal: 10 },
   rowLeft: { justifyContent: "flex-start" },
@@ -204,35 +191,12 @@ const styles = StyleSheet.create({
   chatHeadImage: { width: 36, height: 36, borderRadius: 18, marginHorizontal: 4 },
   messageBubble: { padding: 10, borderRadius: 18, maxWidth: "70%" },
   myMessage: { backgroundColor: "#0084ff", marginLeft: 6 },
-  otherMessage: { backgroundColor: "#f0f0f0", marginRight: 6 },
+  otherMessage: { backgroundColor: "#111", marginRight: 6 },
   myMessageText: { color: "#fff", fontSize: 16 },
-  otherMessageText: { color: "#000", fontSize: 16 },
-  inputRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    padding: 8,
-    borderTopWidth: 1,
-    borderTopColor: "#ccc",
-    backgroundColor: "#fff",
-  },
-  input: {
-    flex: 1,
-    borderWidth: 1,
-    borderColor: "#ddd",
-    borderRadius: 25,
-    paddingHorizontal: 15,
-    paddingVertical: 6,
-    marginRight: 8,
-    backgroundColor: "#f9f9f9",
-    maxHeight: 100,
-  },
-  sendButton: {
-    backgroundColor: "#0084ff",
-    borderRadius: 25,
-    padding: 10,
-    justifyContent: "center",
-    alignItems: "center",
-  },
+  otherMessageText: { color: "#fff", fontSize: 16 },
+  inputRow: { flexDirection: "row", alignItems: "center", padding: 8, borderTopWidth: 1, borderTopColor: "#222", backgroundColor: "#000" },
+  input: { flex: 1, borderWidth: 1, borderColor: "#222", borderRadius: 25, paddingHorizontal: 15, paddingVertical: 6, marginRight: 8, backgroundColor: "#111", color: "#fff", maxHeight: 100 },
+  sendButton: { backgroundColor: "#111827", borderRadius: 25, padding: 10, justifyContent: "center", alignItems: "center" },
 });
 
 export default MessengerScreen;
