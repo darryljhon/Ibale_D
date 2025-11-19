@@ -1,5 +1,5 @@
 import React from "react";
-import { SafeAreaView } from "react-native-safe-area-context";
+import ScreenWrapper from "./ScreenWrapper";
 import { View, Text, TouchableOpacity, StyleSheet, Image } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 
@@ -7,7 +7,7 @@ const HomeScreen = ({ navigation, route }) => {
   const currentUser = route.params?.currentUser;
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "#f5f5f5" }}>
+    <ScreenWrapper>
       <View style={styles.container}>
         <View style={styles.headerSection}>
           {currentUser?.profileUri && (
@@ -63,7 +63,7 @@ const HomeScreen = ({ navigation, route }) => {
           </TouchableOpacity>
         </View>
       </View>
-    </SafeAreaView>
+    </ScreenWrapper>
   );
 };
 

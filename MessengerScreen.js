@@ -5,8 +5,6 @@ import {
   TextInput,
   FlatList,
   StyleSheet,
-  SafeAreaView,
-  KeyboardAvoidingView,
   Platform,
   TouchableOpacity,
   StatusBar,
@@ -15,6 +13,8 @@ import {
   Animated,
 } from "react-native";
 import { useSQLiteContext } from "expo-sqlite";
+
+import ScreenWrapper from "./ScreenWrapper";
 
 const MessengerScreen = ({ route, navigation }) => {
   const { currentUser, chatWithUser } = route.params;
@@ -175,56 +175,50 @@ const MessengerScreen = ({ route, navigation }) => {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <ScreenWrapper>
       <StatusBar barStyle="dark-content" backgroundColor="#fff" />
 
-      <KeyboardAvoidingView
-        style={{ flex: 1 }}
-        behavior={"height"}
-        keyboardVerticalOffset={0}
-      >
-        {/* Header */}
-        <View style={[styles.header, { backgroundColor: '#fff' }] }>
-          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-            <Text style={[styles.backText, { color: '#111' }]}>◀</Text>
-          </TouchableOpacity>
-          <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1, paddingLeft: 8 }}>
-            <Image source={chatWithUserPic ? { uri: chatWithUserPic } : require("./assets/default.png")} style={styles.headerAvatar} />
-            <View style={{ marginLeft: 8 }}>
-              <Text style={[styles.headerName, { color: '#111', fontSize: 16 }]}>{chatWithUser.name}</Text>
-              <Text style={{ color: '#6b7280', fontSize: 12 }}>{chatWithUser.email || 'Online'}</Text>
-            </View>
+      {/* Header */}
+      <View style={[styles.header, { backgroundColor: '#fff' }] }>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+          <Text style={[styles.backText, { color: '#111' }]}>◀</Text>
+        </TouchableOpacity>
+        <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1, paddingLeft: 8 }}>
+          <Image source={chatWithUserPic ? { uri: chatWithUserPic } : require("./assets/default.png")} style={styles.headerAvatar} />
+          <View style={{ marginLeft: 8 }}>
+            <Text style={[styles.headerName, { color: '#111', fontSize: 16 }]}>{chatWithUser.name}</Text>
+            <Text style={{ color: '#6b7280', fontSize: 12 }}>{chatWithUser.email || 'Online'}</Text>
           </View>
-          <View style={{ width: 10 }} />
         </View>
+        <View style={{ width: 10 }} />
+      </View>
 
-        {/* Messages */}
-        <FlatList
-          ref={flatListRef}
-          data={groupedMessages(messages)}
-          keyExtractor={(item, index) => item.type === 'date' ? `date-${item.label}-${index}` : item.id?.toString() || index.toString()}
-          renderItem={renderItem}
-          contentContainerStyle={{ paddingVertical: 12, paddingHorizontal: 8 }}
-          showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="handled"
+      {/* Messages */}
+      <FlatList
+        ref={flatListRef}
+        data={groupedMessages(messages)}
+        keyExtractor={(item, index) => item.type === 'date' ? `date-${item.label}-${index}` : item.id?.toString() || index.toString()}
+        renderItem={renderItem}
+        contentContainerStyle={{ paddingVertical: 12, paddingHorizontal: 8 }}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+      />
+
+      {/* Input */}
+      <Animated.View style={[styles.inputRow, { marginBottom: Math.max(0, keyboardHeight - 250) }] }>
+        <TextInput
+          style={styles.input}
+          placeholder="Type a message..."
+          placeholderTextColor="#9ca3af"
+          value={newMessage}
+          onChangeText={setNewMessage}
+          multiline
         />
-
-        {/* Input */}
-        <Animated.View style={[styles.inputRow, { marginBottom: Math.max(0, keyboardHeight - 250) }] }>
-          <TextInput
-            style={styles.input}
-            placeholder="Type a message..."
-            placeholderTextColor="#9ca3af"
-            value={newMessage}
-            onChangeText={setNewMessage}
-            multiline
-          />
-          <TouchableOpacity style={styles.sendButton} onPress={sendMessage}>
-            <Text style={{ color: "#fff", fontWeight: "bold" }}>Send</Text>
-          </TouchableOpacity>
-        </Animated.View>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
+        <TouchableOpacity style={styles.sendButton} onPress={sendMessage}>
+          <Text style={{ color: "#fff", fontWeight: "bold" }}>Send</Text>
+        </TouchableOpacity>
+      </Animated.View>
+    </ScreenWrapper>
   );
 };
 

@@ -1,12 +1,10 @@
 import React, { useEffect, useState, useRef } from "react";
 import {
-  SafeAreaView,
   View,
   Text,
   TextInput,
   FlatList,
   StyleSheet,
-  KeyboardAvoidingView,
   Platform,
   TouchableOpacity,
   Keyboard,
@@ -14,6 +12,8 @@ import {
   Image,
 } from "react-native";
 import { useSQLiteContext } from "expo-sqlite";
+
+import ScreenWrapper from "./ScreenWrapper";
 
 const CommentScreen = ({ route, navigation }) => {
   const { user } = route.params;
@@ -82,46 +82,40 @@ const CommentScreen = ({ route, navigation }) => {
   }, []);
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "#f5f5f5" }}>
-      <KeyboardAvoidingView
-        style={{ flex: 1 }}
-        behavior={"height"}
-        keyboardVerticalOffset={0}
-      >
-        <FlatList
-          ref={flatListRef}
-          data={comments}
-          keyExtractor={(item) => item.id.toString()}
-          keyboardShouldPersistTaps="handled"
-          renderItem={({ item }) => (
-            <View style={styles.commentRow}>
-              <TouchableOpacity onPress={() => navigation.navigate('Profile', { currentUser: { id: item.userId, name: item.user, email: item.email, profileUri: item.profileUri } })}>
-                <Image source={item.profileUri ? { uri: item.profileUri } : require("./assets/default.png")} style={styles.commentAvatar} />
-              </TouchableOpacity>
-              <View style={styles.comment}>
-                <Text style={styles.user}>{item.user}</Text>
-                <Text style={{ color: "#111", fontSize: 15 }}>{item.comment}</Text>
-              </View>
+    <ScreenWrapper>
+      <FlatList
+        ref={flatListRef}
+        data={comments}
+        keyExtractor={(item) => item.id.toString()}
+        keyboardShouldPersistTaps="handled"
+        renderItem={({ item }) => (
+          <View style={styles.commentRow}>
+            <TouchableOpacity onPress={() => navigation.navigate('Profile', { currentUser: { id: item.userId, name: item.user, email: item.email, profileUri: item.profileUri } })}>
+              <Image source={item.profileUri ? { uri: item.profileUri } : require("./assets/default.png")} style={styles.commentAvatar} />
+            </TouchableOpacity>
+            <View style={styles.comment}>
+              <Text style={styles.user}>{item.user}</Text>
+              <Text style={{ color: "#111", fontSize: 15 }}>{item.comment}</Text>
             </View>
-          )}
-          contentContainerStyle={{ padding: 12 }}
-        />
+          </View>
+        )}
+        contentContainerStyle={{ padding: 12 }}
+      />
 
-        <Animated.View style={[styles.inputContainer, { marginBottom: keyboardAnim }]}> 
-          <TextInput
-            style={styles.input}
-            placeholder="Add a comment..."
-            placeholderTextColor="#9ca3af"
-            value={comment}
-            onChangeText={setComment}
-            multiline
-          />
-          <TouchableOpacity style={{ backgroundColor: "#0084ff", borderRadius: 24, paddingHorizontal: 18, paddingVertical: 10, justifyContent: "center", alignItems: "center" }} onPress={addComment}>
-            <Text style={{ color: "#fff", fontWeight: "700", fontSize: 14 }}>Post</Text>
-          </TouchableOpacity>
-        </Animated.View>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
+      <Animated.View style={[styles.inputContainer, { marginBottom: keyboardAnim }]}> 
+        <TextInput
+          style={styles.input}
+          placeholder="Add a comment..."
+          placeholderTextColor="#9ca3af"
+          value={comment}
+          onChangeText={setComment}
+          multiline
+        />
+        <TouchableOpacity style={{ backgroundColor: "#0084ff", borderRadius: 24, paddingHorizontal: 18, paddingVertical: 10, justifyContent: "center", alignItems: "center" }} onPress={addComment}>
+          <Text style={{ color: "#fff", fontWeight: "700", fontSize: 14 }}>Post</Text>
+        </TouchableOpacity>
+      </Animated.View>
+    </ScreenWrapper>
   );
 };
 

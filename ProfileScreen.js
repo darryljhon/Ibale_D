@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from "react";
-import { SafeAreaView } from "react-native-safe-area-context";
+import ScreenWrapper from "./ScreenWrapper";
 import { View, Text, Image, TouchableOpacity, StyleSheet, Alert } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import { useSQLiteContext } from "expo-sqlite";
@@ -78,7 +78,7 @@ const ProfileScreen = ({ route, navigation }) => {
   useEffect(() => { reload(); }, []);
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
+    <ScreenWrapper style={{ backgroundColor: '#fff' }} contentContainerStyle={{ paddingTop: 16 }}>
       <View style={styles.container}>
         <Text style={styles.title}>Profile</Text>
         <TouchableOpacity onPress={pickImage}>
@@ -104,7 +104,7 @@ const ProfileScreen = ({ route, navigation }) => {
           </TouchableOpacity>
         </View>
       </View>
-    </SafeAreaView>
+    </ScreenWrapper>
   );
 };
 
