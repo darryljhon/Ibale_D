@@ -21,19 +21,27 @@ const ProfileScreen = ({ route, navigation }) => {
       Alert.alert("Permission required", "Please allow access to your gallery.");
       return;
     }
-    const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ImagePicker.MediaTypeOptions.Images, allowsEditing: true, aspect: [1, 1], quality: 0.8 });
+    const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ImagePicker.MediaType.Images, allowsEditing: true, aspect: [1, 1], quality: 0.8 });
     if (!result.canceled) {
       const uri = result.assets[0].uri;
-      await db.runAsync("UPDATE auth_users SET profileUri = ? WHERE id = ?", [uri, user.id]);
-      reload();
+      try {
+        setUser((prev) => ({ ...(prev || {}), profileUri: uri }));
+        const targetId = user?.id || currentUser?.id;
+        if (targetId) {
+          await db.runAsync("UPDATE auth_users SET profileUri = ? WHERE id = ?", [uri, targetId]);
+        }
+      } catch (e) {
+        Alert.alert("Error", "Failed to update profile picture");
+      }
     }
   };
 
   useEffect(() => { reload(); }, []);
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "#000" }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
       <View style={styles.container}>
+        <Text style={styles.title}>Profile</Text>
         <TouchableOpacity onPress={pickImage}>
           {user?.profileUri ? (
             <Image source={{ uri: user.profileUri }} style={styles.avatar} />
@@ -62,18 +70,19 @@ const ProfileScreen = ({ route, navigation }) => {
 };
 
 const styles = StyleSheet.create({
+  title: { fontSize: 28, fontWeight: "bold", marginBottom: 16, textAlign: "center", color: "#111", fontFamily: "Comic Sans MS" },
   container: { alignItems: "center", paddingTop: 24 },
   avatar: { width: 110, height: 110, borderRadius: 55, backgroundColor: "#e5e7eb" },
   placeholder: { justifyContent: "center", alignItems: "center" },
-  name: { fontSize: 22, fontWeight: "700", marginTop: 12, color: "#fff", fontFamily: "Comic Sans MS" },
-  email: { fontSize: 14, color: "#fff", marginTop: 4, fontFamily: "Comic Sans MS" },
-  bio: { fontSize: 14, color: "#fff", marginTop: 8, textAlign: "center", paddingHorizontal: 24, fontFamily: "Comic Sans MS" },
-  addr: { fontSize: 13, color: "#fff", marginTop: 4, fontFamily: "Comic Sans MS" },
+  name: { fontSize: 22, fontWeight: "700", marginTop: 12, color: "#111", fontFamily: "Comic Sans MS" },
+  email: { fontSize: 14, color: "#374151", marginTop: 4, fontFamily: "Comic Sans MS" },
+  bio: { fontSize: 14, color: "#374151", marginTop: 8, textAlign: "center", paddingHorizontal: 24, fontFamily: "Comic Sans MS" },
+  addr: { fontSize: 13, color: "#374151", marginTop: 4, fontFamily: "Comic Sans MS" },
   actions: { marginTop: 16, width: "90%" },
   primaryBtn: { backgroundColor: "#111827", padding: 12, borderRadius: 10 },
   primaryText: { color: "#fff", textAlign: "center", fontWeight: "bold", fontFamily: "Comic Sans MS" },
   secondaryBtn: { marginTop: 10, borderWidth: 1, borderColor: "#222", padding: 12, borderRadius: 10 },
-  secondaryText: { color: "#fff", textAlign: "center", fontWeight: "600", fontFamily: "Comic Sans MS" },
+  secondaryText: { color: "#111111ff", textAlign: "center", fontWeight: "600", fontFamily: "Comic Sans MS" },
   logoutBtn: { marginTop: 10, backgroundColor: "#b91c1c", padding: 12, borderRadius: 10 },
   logoutText: { color: "#fff", textAlign: "center", fontWeight: "bold", fontFamily: "Comic Sans MS" },
 });

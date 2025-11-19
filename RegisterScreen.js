@@ -1,6 +1,6 @@
 import React, { useState } from "react";
-import { SafeAreaView } from "react-native-safe-area-context";
 import {
+  SafeAreaView,
   ScrollView,
   View,
   Text,
@@ -22,8 +22,6 @@ const RegisterScreen = ({ navigation }) => {
     password: "",
     confirmPassword: "",
   });
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const handleRegister = async () => {
     const { name, email, password, confirmPassword } = form;
@@ -35,13 +33,6 @@ const RegisterScreen = ({ navigation }) => {
     }
 
     try {
-      const existing = await db.getFirstAsync(
-        "SELECT id FROM auth_users WHERE email = ?",
-        [email]
-      );
-      if (existing) {
-        return Alert.alert("Error", "Email already registered.");
-      }
       await db.runAsync(
         "INSERT INTO auth_users (name, email, password) VALUES (?, ?, ?)",
         [name, email, password]
@@ -60,7 +51,7 @@ const RegisterScreen = ({ navigation }) => {
   };
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "#000" }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: "#001F54" }}>
       <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior={Platform.OS === "ios" ? "padding" : undefined}
@@ -84,36 +75,24 @@ const RegisterScreen = ({ navigation }) => {
             value={form.email}
             onChangeText={(text) => setForm({ ...form, email: text })}
           />
-          <View style={{ flexDirection: "row", alignItems: "center" }}>
-            <TextInput
-              style={[styles.input, { flex: 1 }]}
-              placeholder="Password"
-              secureTextEntry={!showPassword}
-              value={form.password}
-              onChangeText={(text) => setForm({ ...form, password: text })}
-            />
-            <TouchableOpacity
-              onPress={() => setShowPassword((v) => !v)}
-              style={{ marginLeft: 8, paddingHorizontal: 12, paddingVertical: 10, borderWidth: 1, borderColor: "#e5e7eb", borderRadius: 8 }}
-            >
-              <Text style={{ color: "#111827" }}>{showPassword ? "Hide" : "Show"}</Text>
-            </TouchableOpacity>
-          </View>
-          <View style={{ flexDirection: "row", alignItems: "center" }}>
-            <TextInput
-              style={[styles.input, { flex: 1 }]}
-              placeholder="Confirm Password"
-              secureTextEntry={!showConfirmPassword}
-              value={form.confirmPassword}
-              onChangeText={(text) => setForm({ ...form, confirmPassword: text })}
-            />
-            <TouchableOpacity
-              onPress={() => setShowConfirmPassword((v) => !v)}
-              style={{ marginLeft: 8, paddingHorizontal: 12, paddingVertical: 10, borderWidth: 1, borderColor: "#e5e7eb", borderRadius: 8 }}
-            >
-              <Text style={{ color: "#111827" }}>{showConfirmPassword ? "Hide" : "Show"}</Text>
-            </TouchableOpacity>
-          </View>
+          <TextInput
+            style={styles.input}
+            placeholder="Password"
+            placeholderTextColor="#9bb0d3"
+            secureTextEntry
+            value={form.password}
+            onChangeText={(text) => setForm({ ...form, password: text })}
+          />
+          <TextInput
+            style={styles.input}
+            placeholder="Confirm Password"
+            placeholderTextColor="#9bb0d3"
+            secureTextEntry
+            value={form.confirmPassword}
+            onChangeText={(text) =>
+              setForm({ ...form, confirmPassword: text })
+            }
+          />
 
           <View style={{ marginVertical: 10 }}>
             <TouchableOpacity style={styles.button} onPress={handleRegister}>
@@ -132,11 +111,39 @@ const RegisterScreen = ({ navigation }) => {
 
 const styles = StyleSheet.create({
   container: { flexGrow: 1, justifyContent: "center", padding: 20 },
-  title: { fontSize: 28, fontWeight: "bold", marginBottom: 25, textAlign: "center", color: "#fff", fontFamily: "Comic Sans MS" },
-  input: { borderWidth: 1, borderColor: "#222", backgroundColor: "#111", color: "#fff", borderRadius: 8, padding: 12, marginBottom: 15, fontFamily: "Comic Sans MS" },
-  button: { backgroundColor: "#111827", padding: 14, borderRadius: 10 },
-  buttonText: { color: "#fff", fontWeight: "bold", textAlign: "center", fontSize: 16, fontFamily: "Comic Sans MS" },
-  link: { color: "#fff", textAlign: "center", marginTop: 12, fontSize: 16, fontFamily: "Comic Sans MS" },
+  title: {
+    fontSize: 28,
+    fontWeight: "bold",
+    marginBottom: 25,
+    textAlign: "center",
+    color: "#ffffff",
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: "#4a5d9a",
+    backgroundColor: "#0a1a3c",
+    color: "white",
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 15,
+  },
+  button: {
+    backgroundColor: "#004aad",
+    padding: 14,
+    borderRadius: 10,
+  },
+  buttonText: {
+    color: "white",
+    fontWeight: "bold",
+    textAlign: "center",
+    fontSize: 16,
+  },
+  link: {
+    color: "#7fb3ff",
+    textAlign: "center",
+    marginTop: 12,
+    fontSize: 16,
+  },
 });
 
 export default RegisterScreen;

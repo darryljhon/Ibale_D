@@ -1,6 +1,6 @@
 import React, { useState } from "react";
-import { SafeAreaView } from "react-native-safe-area-context";
 import {
+  SafeAreaView,
   KeyboardAvoidingView,
   View,
   Text,
@@ -23,7 +23,6 @@ const LoginScreen = ({ navigation }) => {
   const [loggedInUser, setLoggedInUser] = useState(null);
   const [otherUsers, setOtherUsers] = useState([]);
   const [profileImage, setProfileImage] = useState(null);
-  const [showPassword, setShowPassword] = useState(false);
 
   const pickImage = async () => {
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -74,7 +73,6 @@ const LoginScreen = ({ navigation }) => {
         setProfileImage(user.profileUri || null);
         loadOtherUsers(user.id);
         Alert.alert("Success", `Welcome back, ${user.name}!`);
-        navigation.replace("MainTabs", { currentUser: user });
       } else {
         Alert.alert("Error", "Invalid email or password.");
       }
@@ -112,7 +110,7 @@ const LoginScreen = ({ navigation }) => {
   );
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "#000" }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: "#001F54" }}>
       <KeyboardAvoidingView
         style={{ flex: 1, padding: 20 }}
         behavior={Platform.OS === "ios" ? "padding" : undefined}
@@ -131,21 +129,14 @@ const LoginScreen = ({ navigation }) => {
               value={form.email}
               onChangeText={(text) => setForm({ ...form, email: text })}
             />
-            <View style={{ flexDirection: "row", alignItems: "center" }}>
-              <TextInput
-                style={[styles.input, { flex: 1 }]}
-                placeholder="Password"
-                secureTextEntry={!showPassword}
-                value={form.password}
-                onChangeText={(text) => setForm({ ...form, password: text })}
-              />
-              <TouchableOpacity
-                onPress={() => setShowPassword((v) => !v)}
-                style={{ marginLeft: 8, paddingHorizontal: 12, paddingVertical: 10, borderWidth: 1, borderColor: "#e5e7eb", borderRadius: 8 }}
-              >
-                <Text style={{ color: "#111827" }}>{showPassword ? "Hide" : "Show"}</Text>
-              </TouchableOpacity>
-            </View>
+            <TextInput
+              style={styles.input}
+              placeholder="Password"
+              placeholderTextColor="#9bb0d3"
+              secureTextEntry
+              value={form.password}
+              onChangeText={(text) => setForm({ ...form, password: text })}
+            />
 
             <TouchableOpacity style={styles.button} onPress={handleLogin}>
               <Text style={styles.buttonText}>Login</Text>
@@ -197,16 +188,40 @@ const LoginScreen = ({ navigation }) => {
 
 const styles = StyleSheet.create({
   loginContainer: { flex: 1, justifyContent: "center" },
-  title: { fontSize: 28, fontWeight: "bold", marginBottom: 20, textAlign: "center", color: "#fff", fontFamily: "Comic Sans MS" },
-  input: { borderWidth: 1, borderColor: "#222", backgroundColor: "#111", color: "#fff", borderRadius: 8, padding: 12, marginBottom: 15, fontFamily: "Comic Sans MS" },
+  title: {
+    fontSize: 28,
+    fontWeight: "bold",
+    marginBottom: 20,
+    textAlign: "center",
+    color: "white",
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: "#4a5d9a",
+    backgroundColor: "#0a1a3c",
+    color: "white",
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 15,
+  },
   button: {
     backgroundColor: "#004aad",
     padding: 14,
     borderRadius: 10,
     marginTop: 10,
   },
-  buttonText: { color: "white", fontWeight: "bold", textAlign: "center", fontSize: 16, fontFamily: "Comic Sans MS" },
-  link: { color: "#fff", textAlign: "center", marginTop: 12, fontSize: 16, fontFamily: "Comic Sans MS" },
+  buttonText: {
+    color: "white",
+    fontWeight: "bold",
+    textAlign: "center",
+    fontSize: 16,
+  },
+  link: {
+    color: "#7fb3ff",
+    textAlign: "center",
+    marginTop: 12,
+    fontSize: 16,
+  },
   subtitle: {
     fontSize: 18,
     fontWeight: "600",

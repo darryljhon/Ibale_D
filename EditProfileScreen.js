@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, Image } from "react-native";
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, Image, KeyboardAvoidingView, Platform } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import { useSQLiteContext } from "expo-sqlite";
 
@@ -19,8 +19,15 @@ const EditProfileScreen = ({ route, navigation }) => {
   const pickImage = async () => {
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!permission.granted) { Alert.alert("Permission required", "Please allow access to your gallery."); return; }
-    const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ImagePicker.MediaTypeOptions.Images, allowsEditing: true, aspect: [1, 1], quality: 0.8 });
-    if (!result.canceled) { setForm({ ...form, profileUri: result.assets[0].uri }); }
+    const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ImagePicker.MediaType.Images, allowsEditing: true, aspect: [1, 1], quality: 0.8 });
+    if (!result.canceled) {
+      const uri = result.assets[0].uri;
+      setForm({ ...form, profileUri: uri });
+      try {
+        await db.runAsync("UPDATE auth_users SET profileUri = ? WHERE id = ?", [uri, currentUser.id]);
+        Alert.alert("Updated", "Profile picture updated");
+      } catch (e) { Alert.alert("Error", "Failed to update profile picture"); }
+    }
   };
 
   const save = async () => {
@@ -35,7 +42,12 @@ const EditProfileScreen = ({ route, navigation }) => {
   };
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "#000" }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
+      >
       <View style={styles.container}>
         <TouchableOpacity onPress={pickImage}>
           {form.profileUri ? (
@@ -50,6 +62,7 @@ const EditProfileScreen = ({ route, navigation }) => {
         <TextInput style={styles.input} placeholder="Address (optional)" value={form.address} onChangeText={(t) => setForm({ ...form, address: t })} />
         <TouchableOpacity style={styles.saveBtn} onPress={save}><Text style={styles.saveText}>Save</Text></TouchableOpacity>
       </View>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 };
@@ -58,7 +71,7 @@ const styles = StyleSheet.create({
   container: { padding: 16 },
   avatar: { width: 110, height: 110, borderRadius: 55, backgroundColor: "#e5e7eb", alignSelf: "center", marginBottom: 16 },
   placeholder: { justifyContent: "center", alignItems: "center" },
-  input: { borderWidth: 1, borderColor: "#222", borderRadius: 8, padding: 12, marginBottom: 12, backgroundColor: "#111", color: "#fff", fontFamily: "Comic Sans MS" },
+  input: { borderWidth: 1, borderColor: "#e5e7eb", borderRadius: 8, padding: 12, marginBottom: 12, backgroundColor: "#fff", color: "#111", fontFamily: "Comic Sans MS" },
   multiline: { minHeight: 80, textAlignVertical: "top" },
   saveBtn: { backgroundColor: "#111827", padding: 12, borderRadius: 10 },
   saveText: { color: "#fff", textAlign: "center", fontWeight: "bold", fontFamily: "Comic Sans MS" },

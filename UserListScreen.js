@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { View, Text, FlatList, StyleSheet, RefreshControl } from "react-native";
+import { SafeAreaView, View, Text, FlatList, StyleSheet, RefreshControl } from "react-native";
 import { useSQLiteContext } from "expo-sqlite";
 
 const UserListScreen = () => {
@@ -22,7 +21,7 @@ const UserListScreen = () => {
   useEffect(() => { loadUsers(); }, []);
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "#000" }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
       <FlatList
         data={users}
         keyExtractor={(item) => item.id.toString()}
@@ -30,7 +29,7 @@ const UserListScreen = () => {
         renderItem={({ item }) => (
           <View style={styles.item}>
             <Text style={styles.name}>{item.name}</Text>
-            <Text style={styles.email}>{item.email}</Text>
+            <Text>{item.email}</Text>
           </View>
         )}
         ListEmptyComponent={<Text>No users found</Text>}
@@ -40,9 +39,8 @@ const UserListScreen = () => {
 };
 
 const styles = StyleSheet.create({
-  item: { padding: 10, borderBottomWidth: 1, borderBottomColor: "#222" },
-  name: { fontWeight: "bold", color: "#fff", fontFamily: "Comic Sans MS" },
-  email: { color: "#fff", fontFamily: "Comic Sans MS" },
+  item: { padding: 10, borderBottomWidth: 1, borderBottomColor: "#ccc" },
+  name: { fontWeight: "bold" },
 });
 
 export default UserListScreen;

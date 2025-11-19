@@ -1,10 +1,8 @@
 import "react-native-gesture-handler";
 import React from "react";
-import { SafeAreaProvider } from "react-native-safe-area-context";
 import { SQLiteProvider } from "expo-sqlite";
-import { NavigationContainer, DefaultTheme } from "@react-navigation/native";
+import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
-import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 
 // Screens
 import RegisterScreen from "./RegisterScreen";
@@ -12,38 +10,15 @@ import LoginScreen from "./LoginScreen";
 import UserListScreen from "./UserListScreen";
 import MessengerScreen from "./MessengerScreen";
 import CommentScreen from "./CommentScreen";
-import ProfileScreen from "./ProfileScreen";
-import ChatSelectScreen from "./ChatSelectScreen";
-import EditProfileScreen from "./EditProfileScreen";
-import AboutScreen from "./AboutScreen";
 
 const Stack = createStackNavigator();
-const Tab = createBottomTabNavigator();
-
-function MainTabs({ route }) {
-  const currentUser = route.params?.currentUser || null;
-  return (
-    <Tab.Navigator
-      screenOptions={{
-        tabBarStyle: { backgroundColor: "#000" },
-        tabBarActiveTintColor: "#fff",
-        tabBarInactiveTintColor: "#9ca3af",
-        headerShown: false,
-      }}
-    >
-      <Tab.Screen name="Home" component={UserListScreen} />
-      <Tab.Screen name="Chat" component={ChatSelectScreen} initialParams={{ currentUser }} />
-      <Tab.Screen name="Profile" component={ProfileScreen} initialParams={{ currentUser }} />
-    </Tab.Navigator>
-  );
-}
 
 export default function App() {
   return (
-    <SafeAreaProvider>
-      <SQLiteProvider
+    <SQLiteProvider
       databaseName="authDatabase.db"
       onInit={async (db) => {
+        // ✅ Create necessary tables
         await db.execAsync(`
           -- Users table
           CREATE TABLE IF NOT EXISTS auth_users (
@@ -71,22 +46,25 @@ export default function App() {
           );
         `);
 
-        try { await db.runAsync("ALTER TABLE auth_users ADD COLUMN profileUri TEXT;"); } catch (error) {}
-        try { await db.runAsync("ALTER TABLE auth_users ADD COLUMN bio TEXT;"); } catch (error) {}
-        try { await db.runAsync("ALTER TABLE auth_users ADD COLUMN address TEXT;"); } catch (error) {}
+        // ✅ Add missing column for profile image (safe check)
+        try {
+          await db.runAsync("ALTER TABLE auth_users ADD COLUMN profileUri TEXT;");
+          console.log("✅ Added profileUri column to auth_users");
+        } catch (error) {
+          // Ignore 'duplicate column' error if it already exists
+          if (!error.message.includes("duplicate column")) {
+            console.error("Error adding profileUri column:", error);
+          }
+        }
       }}
     >
-      <NavigationContainer theme={{
-        ...DefaultTheme,
-        colors: { ...DefaultTheme.colors, background: "#000" }
-      }}>
+      <NavigationContainer>
         <Stack.Navigator
           initialRouteName="Register"
           screenOptions={{
-            headerStyle: { backgroundColor: "#000" },
+            headerStyle: { backgroundColor: "#0084ff" },
             headerTintColor: "#fff",
             headerTitleStyle: { fontWeight: "bold" },
-            headerBackVisible: false,
           }}
         >
           <Stack.Screen
@@ -99,9 +77,6 @@ export default function App() {
             component={LoginScreen}
             options={{ title: "Login" }}
           />
-          <Stack.Screen name="MainTabs" component={MainTabs} options={{ headerShown: false }} />
-          <Stack.Screen name="EditProfile" component={EditProfileScreen} options={{ title: "Edit Profile" }} />
-          <Stack.Screen name="About" component={AboutScreen} options={{ title: "About" }} />
           <Stack.Screen
             name="Users"
             component={UserListScreen}
@@ -119,7 +94,6 @@ export default function App() {
           />
         </Stack.Navigator>
       </NavigationContainer>
-      </SQLiteProvider>
-    </SafeAreaProvider>
+    </SQLiteProvider>
   );
 }
